@@ -1,0 +1,9 @@
+[versions]
+java = "21"
+
+junit = "6.1.3"
+
+[libraries]
+gradle-spotless = { module = "com.diffplug.spotless:com.diffplug.spotless.gradle.plugin", version = "8.10.2" }
+
+gradle-lombok = { module = "io.freefair.gradle:lombok-plugin", version = "9.5.0" }

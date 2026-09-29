@@ -1,0 +1,41 @@
+# Ignore Gradle project-specific cache directory
+.gradle/
+
+# Ignore Gradle build output directory
+bin/
+build/
+.build-cache/
+.kotlin/
+
+/gradle-*.properties
+
+# Eclipse
+.factorypath
+.classpath
+.project
+.settings/
+out/
+
+# vscode
+.vscode/*
+!.vscode/extensions.json
+!.vscode/launch.json
+
+# idea
+.idea/
+
+# Backup and temp files
+*.bak
+*.tmp
+*.temp
+
+# dotenv files
+*.env
+
+# NodeJS
+node_modules/
+
+# Python
+__pycache__/
+*.egg-info/
+.pytest_cache/
