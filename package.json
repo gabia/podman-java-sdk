@@ -1,0 +1,6 @@
+{
+  "name": "podman-java-sdk",
+  "devDependencies": {
+    "prettier": "3.9.6"
+  }
+}

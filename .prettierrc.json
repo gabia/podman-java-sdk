@@ -1,0 +1,11 @@
+{
+  "endOfLine": "auto",
+  "overrides": [
+    {
+      "files": "*.json.template",
+      "options": {
+        "parser": "json"
+      }
+    }
+  ]
+}
