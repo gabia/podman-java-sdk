@@ -8,6 +8,8 @@ gradle-spotless = { module = "com.diffplug.spotless:com.diffplug.spotless.gradle
 
 gradle-lombok = { module = "io.freefair.gradle:lombok-plugin", version = "9.5.0" }
 
+gradle-maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", version = "0.37.0" }
+
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.1" }
 
 jackson-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.22.2" }
