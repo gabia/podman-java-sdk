@@ -1,0 +1,12 @@
+services:
+  podman:
+    image: quay.io/podman/stable:v5.8.7
+    privileged: true
+    command:
+      - podman
+      - system
+      - service
+      - --time=0
+      - tcp://0.0.0.0:8080
+    ports:
+      - "8080"

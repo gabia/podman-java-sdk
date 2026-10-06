@@ -8,6 +8,20 @@ plugins {
     id("podman-java-sdk.integration-test-conventions")
 }
 
+dependencies {
+    compileOnly(libs.jspecify)
+
+    api(libs.jackson.databind)
+
+    integrationTestCompileOnly(libs.jspecify)
+
+    integrationTestImplementation(platform(libs.testcontainers.bom))
+    integrationTestImplementation("org.testcontainers:testcontainers")
+    integrationTestImplementation("org.testcontainers:testcontainers-junit-jupiter")
+
+    integrationTestImplementation(libs.dotenv.java)
+}
+
 tasks.jar {
     manifest {
         attributes("Automatic-Module-Name" to "com.gabiacloud.podman")
