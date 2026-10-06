@@ -1,0 +1,41 @@
+package com.gabiacloud.podman.model;
+
+import com.fasterxml.jackson.annotation.JsonCreator;
+import com.fasterxml.jackson.annotation.JsonValue;
+import java.util.Arrays;
+import lombok.AccessLevel;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.Nullable;
+
+/**
+ * Container status
+ */
+@Getter
+@AllArgsConstructor(access = AccessLevel.PRIVATE)
+public enum ContainerState {
+    CONFIGURED("configured"),
+    CREATED("created"),
+    INITIALIZED("initialized"),
+    RUNNING("running"),
+    PAUSED("paused"),
+    STOPPING("stopping"),
+    STOPPED("stopped"),
+    EXITED("exited"),
+    REMOVING("removing"),
+    DEAD("dead"),
+    UNKNOWN("");
+
+    @JsonValue
+    private final @NonNull String value;
+
+    /** Status for a libpod value. Unknown values map to {@link #UNKNOWN} */
+    @JsonCreator
+    @NonNull public static ContainerState from(@Nullable String value) {
+        return Arrays.stream(values())
+                .filter(state -> state != UNKNOWN && state.value.equalsIgnoreCase(value))
+                .findFirst()
+                .orElse(UNKNOWN);
+    }
+}
