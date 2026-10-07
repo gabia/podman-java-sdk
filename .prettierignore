@@ -4,3 +4,4 @@ bin/
 package-lock.json
 .gradle/
 CHANGELOG.md
+.release-please-manifest.json
