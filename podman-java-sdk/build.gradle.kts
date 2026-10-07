@@ -6,6 +6,8 @@ plugins {
     id("podman-java-sdk.lombok-conventions")
 
     id("podman-java-sdk.integration-test-conventions")
+
+    id("podman-java-sdk.maven-publish-conventions")
 }
 
 dependencies {

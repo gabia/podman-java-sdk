@@ -1,0 +1,94 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.run_id }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup
+        with:
+          node: "true"
+
+      - run: npx prettier --check .
+
+      - run: ./gradlew spotlessCheck
+
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup
+
+      - run: ./gradlew build
+
+      - if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: test-reports
+          path: |
+            podman-java-sdk/build/reports/tests/test
+            podman-java-sdk/build/test-results/test
+
+  integration-test:
+    name: integration-test (${{ matrix.podman-image }})
+    needs: build
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    strategy:
+      fail-fast: false
+      matrix:
+        podman-image:
+          - quay.io/podman/stable:v5.8.7
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: ./.github/actions/setup
+
+      - name: Start Podman service
+        run: >-
+          docker run -d --name podman --privileged -p 8080:8080
+          ${{ matrix.podman-image }}
+          podman system service --time=0 tcp://0.0.0.0:8080
+
+      - name: Wait for Podman service
+        run: timeout 120 bash -c 'until curl -sf http://127.0.0.1:8080/_ping; do sleep 2; done'
+
+      - run: ./gradlew integrationTest
+        env:
+          USE_EXTERNAL_PODMAN: "true"
+          TEST_PODMAN_URI: tcp://127.0.0.1:8080
+
+      - if: failure()
+        run: docker logs podman
+
+      - id: artifact
+        if: always()
+        run: echo "name=integration-test-reports-$(echo '${{ matrix.podman-image }}' | tr ':/' '--')" >> "$GITHUB_OUTPUT"
+
+      - if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ steps.artifact.outputs.name }}
+          path: |
+            podman-java-sdk/build/reports/tests/integrationTest
+            podman-java-sdk/build/test-results/integrationTest
+
+  integration-test-result:
+    if: always()
+    needs: integration-test
+    runs-on: ubuntu-latest
+    steps:
+      - run: test "${{ needs.integration-test.result }}" = success
