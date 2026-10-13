@@ -47,7 +47,6 @@ mavenPublishing {
 
 signing {
     setRequired(provider {
-        !version.toString().endsWith("-SNAPSHOT") &&
-            gradle.taskGraph.allTasks.any { it is PublishToMavenRepository && it.repository.name == "mavenCentral" }
+        gradle.taskGraph.allTasks.any { it is PublishToMavenRepository && it.repository.name == "mavenCentral" }
     })
 }
