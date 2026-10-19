@@ -17,10 +17,17 @@ import org.jspecify.annotations.NonNull;
 @AllArgsConstructor
 public final class PodmanResponse<T> {
 
+    private static final int NOT_FOUND = 404;
+
     private final int statusCode;
 
     /** Request URI */
     private final @NonNull URI uri;
 
     private final T body;
+
+    /** Whether the status code is 404 */
+    public boolean isNotFound() {
+        return statusCode == NOT_FOUND;
+    }
 }

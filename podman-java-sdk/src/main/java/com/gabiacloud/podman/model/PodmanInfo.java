@@ -5,6 +5,7 @@
 
 package com.gabiacloud.podman.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -24,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 @Jacksonized
 @EqualsAndHashCode
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class PodmanInfo {
 
     private final @Nullable Version version;
@@ -45,6 +47,7 @@ public final class PodmanInfo {
     @Jacksonized
     @EqualsAndHashCode
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class Version {
 
         @JsonProperty("Version")

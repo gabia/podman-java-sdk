@@ -39,8 +39,8 @@ jobs:
         with:
           name: test-reports
           path: |
-            podman-java-sdk/build/reports/tests/test
-            podman-java-sdk/build/test-results/test
+            */build/reports/tests/test
+            */build/test-results/test
 
   integration-test:
     name: integration-test (${{ matrix.podman-image }})
@@ -83,8 +83,8 @@ jobs:
         with:
           name: ${{ steps.artifact.outputs.name }}
           path: |
-            podman-java-sdk/build/reports/tests/integrationTest
-            podman-java-sdk/build/test-results/integrationTest
+            podman-java-sdk-integration-test/build/reports/tests
+            podman-java-sdk-integration-test/build/test-results
 
   integration-test-result:
     if: always()

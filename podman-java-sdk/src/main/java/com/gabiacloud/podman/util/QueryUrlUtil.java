@@ -5,9 +5,9 @@
 
 package com.gabiacloud.podman.util;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.gabiacloud.podman.component.RequestBodySerializer;
 import com.gabiacloud.podman.exception.PodmanClientException;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
@@ -48,10 +48,11 @@ public final class QueryUrlUtil {
      * @param filters e.g. {@code {"label": ["app=web"]}}
      * @throws PodmanClientException if serialization fails
      */
-    @NonNull public static String writeFilters(@NonNull ObjectMapper mapper, @NonNull Map<String, List<String>> filters) {
+    @NonNull public static String writeFilters(
+            @NonNull RequestBodySerializer serializer, @NonNull Map<String, List<String>> filters) {
         try {
-            return mapper.writeValueAsString(filters);
-        } catch (JsonProcessingException e) {
+            return new String(serializer.serialize(filters), StandardCharsets.UTF_8);
+        } catch (IOException e) {
             throw new PodmanClientException("cannot serialize filters", e);
         }
     }
