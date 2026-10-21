@@ -5,13 +5,12 @@
 
 package com.gabiacloud.podman.api;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gabiacloud.podman.component.PodmanRequestExecutor;
+import com.gabiacloud.podman.component.ResponseBodyConverter;
+import com.gabiacloud.podman.dto.PullProgress;
 import com.gabiacloud.podman.exception.PodmanApiException;
 import com.gabiacloud.podman.exception.PodmanClientException;
 import com.gabiacloud.podman.property.PodmanProperty;
-import com.gabiacloud.podman.util.PodmanResponseUtil;
 import com.gabiacloud.podman.util.QueryUrlUtil;
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -20,7 +19,6 @@ import java.net.URI;
 import java.net.http.HttpRequest;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
-import java.util.stream.Collectors;
 import lombok.AllArgsConstructor;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
@@ -35,9 +33,9 @@ public final class ImageApi {
 
     private final @NonNull PodmanProperty properties;
 
-    private final @NonNull ObjectMapper mapper;
-
     private final @NonNull PodmanRequestExecutor executor;
+
+    private final @NonNull ResponseBodyConverter converter;
 
     /**
      * Checks whether an image exists
@@ -49,7 +47,7 @@ public final class ImageApi {
         var request =
                 properties.newRequest(BASE.resolve(reference + "/exists")).GET().build();
 
-        return PodmanResponseUtil.exists(executor.process(request));
+        return !executor.process(request).isNotFound();
     }
 
     /**
@@ -69,27 +67,10 @@ public final class ImageApi {
         var response = executor.stream(request);
         try (var body = response.getBody();
                 var reader = new BufferedReader(new InputStreamReader(body, StandardCharsets.UTF_8))) {
-            if (response.getStatusCode() >= 400) {
-                throw toException(request.uri(), response.getStatusCode(), reader);
-            }
-
             return readPulledId(request.uri(), response.getStatusCode(), reader);
         } catch (IOException e) {
             throw new PodmanClientException("cannot read pull progress of " + reference, e);
         }
-    }
-
-    @NonNull private PodmanApiException toException(@NonNull URI uri, int statusCode, @NonNull BufferedReader reader) {
-        var body = reader.lines().collect(Collectors.joining(" "));
-
-        JsonNode parsed = null;
-        try {
-            parsed = mapper.readTree(body);
-        } catch (IOException ignored) {
-            // ignored
-        }
-
-        return PodmanResponseUtil.toException(uri, statusCode, parsed, body);
     }
 
     @NonNull private String readPulledId(@NonNull URI uri, int statusCode, @NonNull BufferedReader reader) throws IOException {
@@ -101,13 +82,13 @@ public final class ImageApi {
                 continue;
             }
 
-            var node = mapper.readTree(line);
-            var error = text(node.get("error"));
+            var progress = converter.convertValue(line.getBytes(StandardCharsets.UTF_8), PullProgress.class);
+            var error = blankToNull(progress.getError());
             if (error != null) {
                 throw new PodmanApiException(uri, statusCode, error);
             }
 
-            var pulled = text(node.get("id"));
+            var pulled = blankToNull(progress.getId());
             if (pulled != null) {
                 id = pulled;
             }
@@ -120,7 +101,7 @@ public final class ImageApi {
         return id;
     }
 
-    @Nullable private static String text(@Nullable JsonNode node) {
-        return node == null || node.isNull() || node.asText().isBlank() ? null : node.asText();
+    @Nullable private static String blankToNull(@Nullable String value) {
+        return value == null || value.isBlank() ? null : value;
     }
 }

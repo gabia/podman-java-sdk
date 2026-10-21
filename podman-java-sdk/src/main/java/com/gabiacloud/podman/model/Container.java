@@ -5,6 +5,7 @@
 
 package com.gabiacloud.podman.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
@@ -25,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 @Jacksonized
 @EqualsAndHashCode
 @AllArgsConstructor(access = AccessLevel.PRIVATE)
+@JsonIgnoreProperties(ignoreUnknown = true)
 public final class Container {
 
     @JsonProperty("Id")
@@ -57,6 +59,7 @@ public final class Container {
     @Jacksonized
     @EqualsAndHashCode
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class State {
 
         @JsonProperty("Status")
@@ -79,6 +82,7 @@ public final class Container {
     @Jacksonized
     @EqualsAndHashCode
     @AllArgsConstructor(access = AccessLevel.PRIVATE)
+    @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class Health {
 
         @JsonProperty("Status")

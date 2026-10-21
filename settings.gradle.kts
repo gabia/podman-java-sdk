@@ -19,3 +19,6 @@ dependencyResolutionManagement {
 }
 
 include("podman-java-sdk")
+include("podman-java-sdk-jackson2")
+include("podman-java-sdk-jackson3")
+include("podman-java-sdk-integration-test")

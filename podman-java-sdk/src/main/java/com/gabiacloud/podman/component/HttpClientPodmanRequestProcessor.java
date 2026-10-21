@@ -5,8 +5,6 @@
 
 package com.gabiacloud.podman.component;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -30,10 +28,9 @@ public final class HttpClientPodmanRequestProcessor implements PodmanRequestProc
     }
 
     @Override
-    @NonNull public PodmanResponse<JsonNode> apply(@NonNull ObjectMapper mapper, @NonNull HttpRequest request)
-            throws IOException, InterruptedException {
+    @NonNull public PodmanResponse<byte[]> apply(@NonNull HttpRequest request) throws IOException, InterruptedException {
         try (var client = clientFactory.get()) {
-            return response(client.send(request, new JacksonNodeBodyHandler(mapper)));
+            return response(client.send(request, HttpResponse.BodyHandlers.ofByteArray()));
         }
     }
 

@@ -5,9 +5,6 @@
 
 package com.gabiacloud.podman.component;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.MissingNode;
 import com.gabiacloud.podman.property.PodmanProperty;
 import java.io.FilterInputStream;
 import java.io.IOException;
@@ -26,14 +23,11 @@ public final class UnixSocketPodmanRequestProcessor implements PodmanRequestProc
     private final @NonNull PodmanProperty properties;
 
     @Override
-    @NonNull public PodmanResponse<JsonNode> apply(@NonNull ObjectMapper mapper, @NonNull HttpRequest request)
-            throws IOException, InterruptedException {
+    @NonNull public PodmanResponse<byte[]> apply(@NonNull HttpRequest request) throws IOException, InterruptedException {
         try (var channel = open()) {
             var raw = UnixHttpExchange.send(channel, request, body(request));
-            var bytes = raw.readBody();
-            JsonNode parsed = bytes.length == 0 ? MissingNode.getInstance() : mapper.readTree(bytes);
 
-            return response(request, raw, parsed);
+            return response(request, raw, raw.readBody());
         }
     }
 

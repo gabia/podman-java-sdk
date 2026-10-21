@@ -5,13 +5,12 @@
 
 package com.gabiacloud.podman.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gabiacloud.podman.component.PodmanRequestExecutor;
+import com.gabiacloud.podman.component.ResponseBodyConverter;
 import com.gabiacloud.podman.exception.PodmanApiException;
 import com.gabiacloud.podman.exception.PodmanClientException;
 import com.gabiacloud.podman.model.PodmanInfo;
 import com.gabiacloud.podman.property.PodmanProperty;
-import com.gabiacloud.podman.util.PodmanResponseUtil;
 import java.io.IOException;
 import java.net.URI;
 import lombok.AllArgsConstructor;
@@ -29,9 +28,9 @@ public final class SystemApi {
 
     private final @NonNull PodmanProperty properties;
 
-    private final @NonNull ObjectMapper mapper;
-
     private final @NonNull PodmanRequestExecutor executor;
+
+    private final @NonNull ResponseBodyConverter converter;
 
     /**
      * Checks whether the daemon responds
@@ -42,30 +41,24 @@ public final class SystemApi {
     public void ping() {
         var request = properties.newRequest(PING_PATH).GET().build();
 
-        var response = executor.stream(request);
-        try (var body = response.getBody()) {
-            body.readAllBytes();
-        } catch (IOException e) {
-            throw new PodmanClientException("cannot read the ping response", e);
-        }
-
-        if (response.getStatusCode() >= 400) {
-            throw new PodmanApiException(request.uri(), response.getStatusCode(), "podman did not answer the ping");
-        }
+        executor.processRequired(request);
     }
 
     /**
      * Reads daemon information
      *
-     * @throws PodmanClientException if the connection fails
+     * @throws PodmanClientException if the connection fails or the response cannot be read
      * @throws PodmanApiException if the daemon returns an error response
      */
     @NonNull public PodmanInfo info() {
         var request = properties.newRequest(INFO_PATH).GET().build();
 
-        var response = executor.process(request);
-        PodmanResponseUtil.error404(response);
+        var response = executor.processRequired(request);
 
-        return mapper.convertValue(response.getBody(), PodmanInfo.class);
+        try {
+            return converter.convertValue(response.getBody(), PodmanInfo.class);
+        } catch (IOException e) {
+            throw new PodmanClientException("cannot read the daemon information", e);
+        }
     }
 }

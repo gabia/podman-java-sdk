@@ -5,8 +5,6 @@
 
 package com.gabiacloud.podman.component;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gabiacloud.podman.property.PodmanProperty;
 import java.io.IOException;
 import java.io.InputStream;
@@ -26,16 +24,14 @@ public interface PodmanRequestProcessor {
     }
 
     /**
-     * Sends a request and reads a JSON response
+     * Sends a request and reads the whole body
      *
-     * @param mapper object mapper used to convert the JSON response
      * @param request request to send
      * @return response carrying the status code as is
      * @throws IOException if the exchange fails
      * @throws InterruptedException if interrupted while waiting
      */
-    @NonNull PodmanResponse<JsonNode> apply(@NonNull ObjectMapper mapper, @NonNull HttpRequest request)
-            throws IOException, InterruptedException;
+    @NonNull PodmanResponse<byte[]> apply(@NonNull HttpRequest request) throws IOException, InterruptedException;
 
     /**
      * Sends a request and reads the body as a raw stream

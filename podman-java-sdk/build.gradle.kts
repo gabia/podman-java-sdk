@@ -5,7 +5,7 @@ plugins {
 
     id("podman-java-sdk.lombok-conventions")
 
-    id("podman-java-sdk.integration-test-conventions")
+    id("podman-java-sdk.integration-test-fixture-conventions")
 
     id("podman-java-sdk.maven-publish-conventions")
 }
@@ -13,15 +13,17 @@ plugins {
 dependencies {
     compileOnly(libs.jspecify)
 
-    api(libs.jackson.databind)
+    api(libs.jackson.annotations)
 
-    integrationTestCompileOnly(libs.jspecify)
+    compileOnly(libs.jackson2.databind)
+    compileOnly(libs.jackson3.databind)
 
-    integrationTestImplementation(platform(libs.testcontainers.bom))
-    integrationTestImplementation("org.testcontainers:testcontainers")
-    integrationTestImplementation("org.testcontainers:testcontainers-junit-jupiter")
+    testCompileOnly(libs.jspecify)
 
-    integrationTestImplementation(libs.dotenv.java)
+    "integrationTestFixtureImplementation"(platform(libs.testcontainers.bom))
+    "integrationTestFixtureImplementation"("org.testcontainers:testcontainers")
+
+    "integrationTestFixtureImplementation"(libs.dotenv.java)
 }
 
 tasks.jar {

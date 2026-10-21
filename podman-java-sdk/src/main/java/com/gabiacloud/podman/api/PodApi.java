@@ -5,14 +5,17 @@
 
 package com.gabiacloud.podman.api;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.gabiacloud.podman.component.PodmanRequestExecutor;
+import com.gabiacloud.podman.component.RequestBodySerializer;
+import com.gabiacloud.podman.component.ResponseBodyConverter;
+import com.gabiacloud.podman.dto.IdSummary;
+import com.gabiacloud.podman.dto.PodActionReport;
 import com.gabiacloud.podman.exception.PodmanApiException;
 import com.gabiacloud.podman.exception.PodmanClientException;
 import com.gabiacloud.podman.model.Pod;
 import com.gabiacloud.podman.property.PodmanProperty;
-import com.gabiacloud.podman.util.PodmanResponseUtil;
 import com.gabiacloud.podman.util.QueryUrlUtil;
+import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpRequest;
 import java.time.Duration;
@@ -33,9 +36,11 @@ public final class PodApi {
 
     private final @NonNull PodmanProperty properties;
 
-    private final @NonNull ObjectMapper mapper;
-
     private final @NonNull PodmanRequestExecutor executor;
+
+    private final @NonNull RequestBodySerializer serializer;
+
+    private final @NonNull ResponseBodyConverter converter;
 
     /**
      * Checks whether a pod exists
@@ -46,26 +51,35 @@ public final class PodApi {
     public boolean exists(@NonNull String pod) {
         var request = properties.newRequest(path(pod, "exists")).GET().build();
 
-        return PodmanResponseUtil.exists(executor.process(request));
+        return !executor.process(request).isNotFound();
     }
 
     /**
      * Reads pod details
      *
      * @return {@code null} if missing
-     * @throws PodmanClientException if the connection fails
+     * @throws PodmanClientException if the connection fails or the response cannot be read
      * @throws PodmanApiException if the daemon returns an error
      */
     @Nullable public Pod findById(@NonNull String pod) {
         var request = properties.newRequest(path(pod, "json")).GET().build();
 
-        return PodmanResponseUtil.findOne(mapper, executor.process(request), Pod.class);
+        var response = executor.process(request);
+        if (response.isNotFound()) {
+            return null;
+        }
+
+        try {
+            return converter.convertValue(response.getBody(), Pod.class);
+        } catch (IOException e) {
+            throw new PodmanClientException("cannot read pod " + pod, e);
+        }
     }
 
     /**
      * Returns details of all pods
      *
-     * @throws PodmanClientException if the connection fails
+     * @throws PodmanClientException if the connection fails or the response cannot be read
      * @throws PodmanApiException if the daemon returns an error
      */
     @NonNull public List<Pod> findAll() {
@@ -76,21 +90,26 @@ public final class PodApi {
      * Returns details of pods matching the filters
      *
      * @param filters libpod filters, e.g. {@code {"label": ["app=web"]}}
-     * @throws PodmanClientException if the connection fails
+     * @throws PodmanClientException if the connection fails or the response cannot be read
      * @throws PodmanApiException if the daemon returns an error
      */
     @NonNull public List<Pod> findAll(@NonNull Map<String, List<String>> filters) {
         var uri = QueryUrlUtil.addQuery(
                 BASE.resolve("json"),
-                filters.isEmpty() ? Map.of() : Map.of("filters", QueryUrlUtil.writeFilters(mapper, filters)));
+                filters.isEmpty() ? Map.of() : Map.of("filters", QueryUrlUtil.writeFilters(serializer, filters)));
         var request = properties.newRequest(uri).GET().build();
 
-        var response = executor.process(request);
-        PodmanResponseUtil.error404(response);
+        var response = executor.processRequired(request);
 
-        return response.getBody()
-                .valueStream()
-                .map(summary -> findById(summary.get("Id").asText()))
+        List<IdSummary> summaries;
+        try {
+            summaries = converter.convertList(response.getBody(), IdSummary.class);
+        } catch (IOException e) {
+            throw new PodmanClientException("cannot read the pod list", e);
+        }
+
+        return summaries.stream()
+                .map(summary -> findById(summary.getId()))
                 .filter(Objects::nonNull)
                 .toList();
     }
@@ -151,7 +170,7 @@ public final class PodApi {
         var uri = QueryUrlUtil.addQuery(BASE.resolve(pod), Map.of("force", String.valueOf(force)));
         var request = properties.newRequest(uri).DELETE().build();
 
-        PodmanResponseUtil.handleDefault(executor.process(request));
+        executor.process(request);
     }
 
     private void operate(@NonNull String pod, @NonNull String action, @NonNull Map<String, String> query) {
@@ -161,10 +180,22 @@ public final class PodApi {
                 .POST(HttpRequest.BodyPublishers.noBody())
                 .build();
 
-        var response = executor.process(request);
-        PodmanResponseUtil.error404(response);
+        var response = executor.processRequired(request);
+        if (response.getBody().length == 0) {
+            return;
+        }
 
-        PodmanResponseUtil.assertNoContainerErrors(response);
+        PodActionReport report;
+        try {
+            report = converter.convertValue(response.getBody(), PodActionReport.class);
+        } catch (IOException e) {
+            throw new PodmanClientException("cannot read the %s result of pod %s".formatted(action, pod), e);
+        }
+
+        var errors = report.joinErrors();
+        if (errors != null) {
+            throw new PodmanApiException(response.getUri(), response.getStatusCode(), errors);
+        }
     }
 
     @NonNull private URI path(@NonNull String pod, @NonNull String action) {
