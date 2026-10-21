@@ -1,8 +1,8 @@
 plugins {
+    id("podman-java-sdk.common-conventions")
+
     java
 }
-
-group = "com.gabiacloud"
 
 val libs = versionCatalogs.named("libs")
 

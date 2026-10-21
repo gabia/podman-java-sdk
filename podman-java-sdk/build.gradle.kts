@@ -1,3 +1,7 @@
+import com.vanniktech.maven.publish.JavaLibrary
+import com.vanniktech.maven.publish.JavadocJar
+import com.vanniktech.maven.publish.SourcesJar
+
 plugins {
     id("podman-java-sdk.java-library-conventions")
 
@@ -24,6 +28,10 @@ dependencies {
     "integrationTestFixtureImplementation"("org.testcontainers:testcontainers")
 
     "integrationTestFixtureImplementation"(libs.dotenv.java)
+}
+
+mavenPublishing {
+    configure(JavaLibrary(javadocJar = JavadocJar.None(), sourcesJar = SourcesJar.None()))
 }
 
 tasks.jar {
