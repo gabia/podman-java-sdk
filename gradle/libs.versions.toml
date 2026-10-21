@@ -18,6 +18,8 @@ jackson2-databind = { module = "com.fasterxml.jackson.core:jackson-databind", ve
 
 jackson3-databind = { module = "tools.jackson.core:jackson-databind", version = "3.2.3" }
 
+spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version = "4.1.1" }
+
 testcontainers-bom = { module = "org.testcontainers:testcontainers-bom", version = "2.0.5" }
 
 dotenv-java = { module = "io.github.cdimascio:dotenv-java", version = "3.2.0" }

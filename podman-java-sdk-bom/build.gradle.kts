@@ -13,6 +13,7 @@ dependencies {
         api(project(":podman-java-sdk"))
         api(project(":podman-java-sdk-jackson2"))
         api(project(":podman-java-sdk-jackson3"))
+        api(project(":podman-java-sdk-spring-boot4-starter"))
     }
 }
 
