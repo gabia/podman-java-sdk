@@ -8,6 +8,7 @@ package com.gabiacloud.podman.api;
 import com.gabiacloud.podman.component.PodmanRequestExecutor;
 import com.gabiacloud.podman.component.RequestBodySerializer;
 import com.gabiacloud.podman.component.ResponseBodyConverter;
+import com.gabiacloud.podman.dto.ContainerSpec;
 import com.gabiacloud.podman.dto.IdSummary;
 import com.gabiacloud.podman.exception.PodmanApiException;
 import com.gabiacloud.podman.exception.PodmanClientException;
@@ -16,6 +17,8 @@ import com.gabiacloud.podman.property.PodmanProperty;
 import com.gabiacloud.podman.util.QueryUrlUtil;
 import java.io.IOException;
 import java.net.URI;
+import java.net.http.HttpRequest;
+import java.time.Duration;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,7 +27,7 @@ import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
 /**
- * Container lookup
+ * Container lookup and lifecycle control
  */
 @AllArgsConstructor
 public final class ContainerApi {
@@ -113,6 +116,86 @@ public final class ContainerApi {
                 .map(summary -> findById(summary.getId()))
                 .filter(Objects::nonNull)
                 .toList();
+    }
+
+    /**
+     * Creates a container without starting it
+     *
+     * @return ID of the created container
+     * @throws PodmanClientException if the connection fails or the request or response cannot be processed
+     * @throws PodmanApiException if the image is missing or the creation fails
+     */
+    @NonNull public String create(@NonNull ContainerSpec spec) {
+        byte[] body;
+        try {
+            body = serializer.serialize(spec);
+        } catch (IOException e) {
+            throw new PodmanClientException("cannot write the spec of container " + spec.getName(), e);
+        }
+
+        var request = properties
+                .newJsonRequest(BASE.resolve("create"))
+                .POST(HttpRequest.BodyPublishers.ofByteArray(body))
+                .build();
+
+        var response = executor.processRequired(request);
+
+        try {
+            return converter.convertValue(response.getBody(), IdSummary.class).getId();
+        } catch (IOException e) {
+            throw new PodmanClientException("cannot read the creation result of container " + spec.getName(), e);
+        }
+    }
+
+    /**
+     * Starts the container. Does nothing if it is already running
+     *
+     * @throws PodmanClientException if the connection fails
+     * @throws PodmanApiException if the container is missing or fails to start
+     */
+    public void start(@NonNull String container) {
+        var request = properties
+                .newRequest(path(container, "start"))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        executor.processRequired(request);
+    }
+
+    /**
+     * Waits until the container stops, within the default timeout
+     *
+     * @return exit code of the container
+     * @throws PodmanClientException if the connection fails, the timeout elapses, or the response cannot be read
+     * @throws PodmanApiException if the container is missing or the wait fails
+     */
+    public int wait(@NonNull String container) {
+        return wait(container, properties.getTimeout());
+    }
+
+    /**
+     * Waits until the container stops
+     *
+     * @param timeout how long to wait for the container to stop
+     * @return exit code of the container
+     * @throws PodmanClientException if the connection fails, the timeout elapses, or the response cannot be read
+     * @throws PodmanApiException if the container is missing or the wait fails
+     */
+    public int wait(@NonNull String container, @NonNull Duration timeout) {
+        var uri = QueryUrlUtil.addQuery(path(container, "wait"), Map.of("condition", "stopped"));
+        var request = properties
+                .newRequest(uri)
+                .timeout(timeout)
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        var response = executor.processRequired(request);
+
+        try {
+            return converter.convertValue(response.getBody(), Integer.class);
+        } catch (IOException e) {
+            throw new PodmanClientException("cannot read the exit code of container " + container, e);
+        }
     }
 
     @NonNull private URI path(@NonNull String container, @NonNull String action) {

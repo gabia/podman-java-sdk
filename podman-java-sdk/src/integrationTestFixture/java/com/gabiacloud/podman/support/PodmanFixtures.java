@@ -5,10 +5,12 @@
 
 package com.gabiacloud.podman.support;
 
+import com.gabiacloud.podman.api.ContainerApi;
 import com.gabiacloud.podman.api.ImageApi;
 import com.gabiacloud.podman.api.PodApi;
 import com.gabiacloud.podman.component.PodmanRequestExecutor;
 import com.gabiacloud.podman.component.RequestBodySerializer;
+import com.gabiacloud.podman.dto.ContainerSpec;
 import com.gabiacloud.podman.property.PodmanProperty;
 import java.io.IOException;
 import java.net.URI;
@@ -38,6 +40,8 @@ public final class PodmanFixtures {
 
     private final PodApi pods;
 
+    private final ContainerApi containers;
+
     private final ImageApi images;
 
     /** Pulls the fixture image if it is missing */
@@ -57,9 +61,12 @@ public final class PodmanFixtures {
         removePod(name);
 
         post("pods/create", Map.of("name", name, "labels", Map.of(TEST_ID_LABEL, testId)));
-        post(
-                "containers/create",
-                Map.of("name", name + "-sleeper", "image", IMAGE, "pod", name, "command", List.of("sleep", "600")));
+        containers.create(ContainerSpec.builder()
+                .name(name + "-sleeper")
+                .image(IMAGE)
+                .pod(name)
+                .command(List.of("sleep", "600"))
+                .build());
         pods.start(name);
 
         return name;

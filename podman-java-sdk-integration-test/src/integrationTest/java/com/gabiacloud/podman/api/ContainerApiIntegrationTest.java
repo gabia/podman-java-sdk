@@ -5,6 +5,7 @@
 
 package com.gabiacloud.podman.api;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -12,6 +13,7 @@ import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import com.gabiacloud.podman.annotation.PodmanTest;
+import com.gabiacloud.podman.dto.ContainerSpec;
 import com.gabiacloud.podman.model.ContainerState;
 import com.gabiacloud.podman.model.HealthState;
 import com.gabiacloud.podman.support.PodmanFixtures;
@@ -28,6 +30,8 @@ final class ContainerApiIntegrationTest {
     private static final String POD = "podman-java-sdk-integration-test-container";
 
     private static final String CONTAINER = POD + "-sleeper";
+
+    private static final String EXITING = POD + "-exiting";
 
     private static final String MISSING = "podman-java-sdk-integration-test-missing";
 
@@ -74,5 +78,28 @@ final class ContainerApiIntegrationTest {
         var containers = api.findAll(Map.of("pod", List.of(POD)));
 
         assertTrue(containers.stream().anyMatch(container -> CONTAINER.equals(container.getName())));
+    }
+
+    @Test
+    @DisplayName("[Success] Re-runs a created container and returns its exit code")
+    void rerunsCreatedContainer() {
+        api.create(ContainerSpec.builder()
+                .name(EXITING)
+                .image(PodmanFixtures.IMAGE)
+                .pod(POD)
+                .command(List.of("sh", "-c", "exit 3"))
+                .build());
+
+        api.start(EXITING);
+        assertEquals(3, api.wait(EXITING), "first run exit code");
+
+        api.start(EXITING);
+        assertEquals(3, api.wait(EXITING), "re-run exit code");
+    }
+
+    @Test
+    @DisplayName("[Success] Starting a running container is idempotent")
+    void startIsIdempotent() {
+        assertDoesNotThrow(() -> api.start(CONTAINER));
     }
 }
