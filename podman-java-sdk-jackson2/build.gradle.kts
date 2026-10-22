@@ -20,6 +20,7 @@ dependencies {
     api(project(":podman-java-sdk"))
 
     api(libs.jackson2.databind)
+    api(libs.jackson2.jsr310)
 
     testCompileOnly(libs.jspecify)
 

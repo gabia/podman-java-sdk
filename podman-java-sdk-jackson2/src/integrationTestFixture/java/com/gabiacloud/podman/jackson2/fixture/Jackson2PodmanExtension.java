@@ -6,6 +6,7 @@
 package com.gabiacloud.podman.jackson2.fixture;
 
 import com.fasterxml.jackson.databind.json.JsonMapper;
+import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.gabiacloud.podman.component.ErrorMessageResolver;
 import com.gabiacloud.podman.component.RequestBodySerializer;
 import com.gabiacloud.podman.component.ResponseBodyConverter;
@@ -28,7 +29,7 @@ public final class Jackson2PodmanExtension implements BeforeAllCallback {
             return;
         }
 
-        var mapper = JsonMapper.builder().build();
+        var mapper = JsonMapper.builder().addModule(new JavaTimeModule()).build();
 
         store.put(RequestBodySerializer.class, new Jackson2RequestBodySerializer(mapper));
         store.put(ResponseBodyConverter.class, new Jackson2ResponseBodyConverter(mapper));

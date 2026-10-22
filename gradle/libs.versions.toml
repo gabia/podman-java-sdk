@@ -16,6 +16,8 @@ jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations
 
 jackson2-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.22.3" }
 
+jackson2-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.22.3" }
+
 jackson3-databind = { module = "tools.jackson.core:jackson-databind", version = "3.2.3" }
 
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version = "4.1.1" }

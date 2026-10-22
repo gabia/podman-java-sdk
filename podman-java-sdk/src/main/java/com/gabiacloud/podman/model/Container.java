@@ -7,6 +7,7 @@ package com.gabiacloud.podman.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import java.time.Instant;
 import lombok.AccessLevel;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -62,6 +63,8 @@ public final class Container {
     @JsonIgnoreProperties(ignoreUnknown = true)
     public static final class State {
 
+        private static final @NonNull Instant ZERO_TIME = Instant.parse("0001-01-01T00:00:00Z");
+
         @JsonProperty("Status")
         private final @NonNull ContainerState status;
 
@@ -73,6 +76,14 @@ public final class Container {
 
         @JsonProperty("Health")
         private final @Nullable Health health;
+
+        @JsonProperty("StartedAt")
+        private final @Nullable Instant startedAt;
+
+        /** Start time. {@code null} if never started */
+        @Nullable public Instant getStartedAt() {
+            return ZERO_TIME.equals(startedAt) ? null : startedAt;
+        }
     }
 
     /** Container health check */
