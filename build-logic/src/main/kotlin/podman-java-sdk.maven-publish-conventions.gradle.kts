@@ -1,7 +1,3 @@
-import com.vanniktech.maven.publish.JavaLibrary
-import com.vanniktech.maven.publish.JavadocJar
-import com.vanniktech.maven.publish.SourcesJar
-
 plugins {
     id("com.vanniktech.maven.publish.base")
 
@@ -9,8 +5,6 @@ plugins {
 }
 
 mavenPublishing {
-    configure(JavaLibrary(javadocJar = JavadocJar.None(), sourcesJar = SourcesJar.None()))
-
     publishToMavenCentral(automaticRelease = true)
 
     signAllPublications()

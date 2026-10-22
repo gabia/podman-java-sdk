@@ -5,15 +5,13 @@
 
 package com.gabiacloud.podman.component;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.MissingNode;
 import com.gabiacloud.podman.property.PodmanProperty;
 import java.io.FilterInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.UnixDomainSocketAddress;
 import java.net.http.HttpRequest;
+import java.time.Duration;
 import lombok.AllArgsConstructor;
 import org.jspecify.annotations.NonNull;
 
@@ -26,20 +24,17 @@ public final class UnixSocketPodmanRequestProcessor implements PodmanRequestProc
     private final @NonNull PodmanProperty properties;
 
     @Override
-    @NonNull public PodmanResponse<JsonNode> apply(@NonNull ObjectMapper mapper, @NonNull HttpRequest request)
-            throws IOException, InterruptedException {
-        try (var channel = open()) {
+    @NonNull public PodmanResponse<byte[]> apply(@NonNull HttpRequest request) throws IOException, InterruptedException {
+        try (var channel = open(request)) {
             var raw = UnixHttpExchange.send(channel, request, body(request));
-            var bytes = raw.readBody();
-            JsonNode parsed = bytes.length == 0 ? MissingNode.getInstance() : mapper.readTree(bytes);
 
-            return response(request, raw, parsed);
+            return response(request, raw, raw.readBody());
         }
     }
 
     @Override
     @NonNull public PodmanResponse<InputStream> stream(@NonNull HttpRequest request) throws IOException, InterruptedException {
-        var channel = open();
+        var channel = open(request);
         try {
             var raw = UnixHttpExchange.send(channel, request, body(request));
 
@@ -50,12 +45,16 @@ public final class UnixSocketPodmanRequestProcessor implements PodmanRequestProc
         }
     }
 
-    @NonNull private DeadlineChannel open() throws IOException {
-        return DeadlineChannel.connect(UnixDomainSocketAddress.of(properties.socketPath()), properties.getTimeout());
+    @NonNull private DeadlineChannel open(@NonNull HttpRequest request) throws IOException {
+        return DeadlineChannel.connect(UnixDomainSocketAddress.of(properties.socketPath()), timeout(request));
     }
 
     private byte[] body(@NonNull HttpRequest request) throws IOException, InterruptedException {
-        return RequestBodyCollector.collect(request.bodyPublisher().orElse(null), properties.getTimeout());
+        return RequestBodyCollector.collect(request.bodyPublisher().orElse(null), timeout(request));
+    }
+
+    @NonNull private Duration timeout(@NonNull HttpRequest request) {
+        return request.timeout().orElse(properties.getTimeout());
     }
 
     @NonNull private static <T> PodmanResponse<T> response(
