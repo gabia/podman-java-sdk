@@ -33,6 +33,8 @@ final class ContainerApiIntegrationTest {
 
     private static final String EXITING = POD + "-exiting";
 
+    private static final String CREATED = POD + "-created";
+
     private static final String MISSING = "podman-java-sdk-integration-test-missing";
 
     private static final String TEST_ID = "9002";
@@ -63,6 +65,23 @@ final class ContainerApiIntegrationTest {
         assertEquals(ContainerState.RUNNING, container.getState().getStatus());
         assertTrue(container.isRunning());
         assertEquals(HealthState.NONE, container.getHealth());
+        assertNotNull(container.getState().getStartedAt());
+    }
+
+    @Test
+    @DisplayName("[Success] Start time is null for a container that never started")
+    void neverStartedContainer() {
+        api.create(ContainerSpec.builder()
+                .name(CREATED)
+                .image(PodmanFixtures.IMAGE)
+                .pod(POD)
+                .command(List.of("sleep", "600"))
+                .build());
+
+        var container = api.findById(CREATED);
+        assertNotNull(container);
+        assertEquals(ContainerState.CREATED, container.getState().getStatus());
+        assertNull(container.getState().getStartedAt());
     }
 
     @Test

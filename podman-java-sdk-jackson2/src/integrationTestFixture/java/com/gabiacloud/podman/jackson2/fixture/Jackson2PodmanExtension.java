@@ -28,7 +28,7 @@ public final class Jackson2PodmanExtension implements BeforeAllCallback {
             return;
         }
 
-        var mapper = JsonMapper.builder().build();
+        var mapper = JsonMapper.builder().findAndAddModules().build();
 
         store.put(RequestBodySerializer.class, new Jackson2RequestBodySerializer(mapper));
         store.put(ResponseBodyConverter.class, new Jackson2ResponseBodyConverter(mapper));
