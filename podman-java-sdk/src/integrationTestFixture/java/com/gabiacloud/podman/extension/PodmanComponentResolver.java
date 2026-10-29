@@ -58,7 +58,7 @@ public final class PodmanComponentResolver implements BeforeAllCallback, Paramet
         var images = new ImageApi(properties, executor, converter);
 
         store.put(PodmanRequestExecutor.class, executor);
-        store.put(SystemApi.class, new SystemApi(properties, executor, converter));
+        store.put(SystemApi.class, new SystemApi(properties, executor, serializer, converter));
         store.put(PodApi.class, pods);
         store.put(ContainerApi.class, containers);
         store.put(ImageApi.class, images);
