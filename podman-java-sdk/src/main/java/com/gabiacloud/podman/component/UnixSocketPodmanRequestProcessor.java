@@ -34,7 +34,7 @@ public final class UnixSocketPodmanRequestProcessor implements PodmanRequestProc
 
     @Override
     @NonNull public PodmanResponse<InputStream> stream(@NonNull HttpRequest request) throws IOException, InterruptedException {
-        var channel = open(request);
+        var channel = openStream(request);
         try {
             var raw = UnixHttpExchange.send(channel, request, body(request));
 
@@ -47,6 +47,10 @@ public final class UnixSocketPodmanRequestProcessor implements PodmanRequestProc
 
     @NonNull private DeadlineChannel open(@NonNull HttpRequest request) throws IOException {
         return DeadlineChannel.connect(UnixDomainSocketAddress.of(properties.socketPath()), timeout(request));
+    }
+
+    @NonNull private DeadlineChannel openStream(@NonNull HttpRequest request) throws IOException {
+        return DeadlineChannel.connect(UnixDomainSocketAddress.of(properties.socketPath()), timeout(request), true);
     }
 
     private byte[] body(@NonNull HttpRequest request) throws IOException, InterruptedException {
