@@ -98,8 +98,9 @@ public class PodmanAutoConfiguration {
     @NonNull public SystemApi podmanSystemApi(
             @NonNull PodmanProperty properties,
             @NonNull PodmanRequestExecutor executor,
+            @NonNull RequestBodySerializer serializer,
             @NonNull ResponseBodyConverter converter) {
-        return new SystemApi(properties, executor, converter);
+        return new SystemApi(properties, executor, serializer, converter);
     }
 
     /** Creates the pod API */

@@ -11,7 +11,7 @@ Podman REST API를 사용하는 Java 클라이언트 라이브러리
 
 | API            | Operations                                                                                                                                                                     |
 | -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `SystemApi`    | <ul><li>Ping service</li><li>Get info</li></ul>                                                                                                                                |
+| `SystemApi`    | <ul><li>Ping service</li><li>Get info</li><li>Get events</li></ul>                                                                                                             |
 | `ContainerApi` | <ul><li>Check if container exists</li><li>Inspect container</li><li>List containers</li><li>Create a container</li><li>Start a container</li><li>Wait on a container</li></ul> |
 | `PodApi`       | <ul><li>Pod exists</li><li>Inspect pod</li><li>List pods</li><li>Start a pod</li><li>Stop a pod</li><li>Restart a pod</li><li>Kill a pod</li><li>Remove pod</li></ul>          |
 | `ImageApi`     | <ul><li>Image exists</li><li>Pull images</li></ul>                                                                                                                             |
@@ -48,6 +48,7 @@ import com.gabiacloud.podman.api.SystemApi;
 import com.gabiacloud.podman.component.PodmanRequestExecutor;
 import com.gabiacloud.podman.component.PodmanRequestProcessor;
 import com.gabiacloud.podman.jackson3.Jackson3ErrorMessageResolver;
+import com.gabiacloud.podman.jackson3.Jackson3RequestBodySerializer;
 import com.gabiacloud.podman.jackson3.Jackson3ResponseBodyConverter;
 import com.gabiacloud.podman.property.PodmanProperty;
 import tools.jackson.databind.json.JsonMapper;
@@ -60,7 +61,10 @@ public class Example {
                 PodmanRequestProcessor.forHost(properties),
                 new Jackson3ErrorMessageResolver(mapper));
         var system = new SystemApi(
-                properties, executor, new Jackson3ResponseBodyConverter(mapper));
+                properties,
+                executor,
+                new Jackson3RequestBodySerializer(mapper),
+                new Jackson3ResponseBodyConverter(mapper));
 
         system.ping();
         System.out.println(system.info());
