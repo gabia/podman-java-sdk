@@ -13,10 +13,14 @@ import java.net.SocketTimeoutException;
 import java.net.StandardProtocolFamily;
 import java.net.UnixDomainSocketAddress;
 import java.nio.ByteBuffer;
+import java.nio.channels.AsynchronousCloseException;
+import java.nio.channels.CancelledKeyException;
+import java.nio.channels.ClosedSelectorException;
 import java.nio.channels.SelectionKey;
 import java.nio.channels.Selector;
 import java.nio.channels.SocketChannel;
 import java.time.Duration;
+import java.util.concurrent.TimeUnit;
 import org.jspecify.annotations.NonNull;
 
 /**
@@ -26,6 +30,8 @@ final class DeadlineChannel implements Closeable {
 
     private static final int BUFFER_SIZE = 8 * 1024;
 
+    private static final long IDLE_POLL_NANOS = TimeUnit.SECONDS.toNanos(1);
+
     private final @NonNull SocketChannel channel;
 
     private final @NonNull Selector selector;
@@ -34,20 +40,40 @@ final class DeadlineChannel implements Closeable {
 
     private final long deadlineNanos;
 
+    private final boolean isStreaming;
+
     private DeadlineChannel(
-            @NonNull SocketChannel channel, @NonNull Selector selector, @NonNull SelectionKey key, long deadlineNanos) {
+            @NonNull SocketChannel channel,
+            @NonNull Selector selector,
+            @NonNull SelectionKey key,
+            long deadlineNanos,
+            boolean isStreaming) {
         this.channel = channel;
         this.selector = selector;
         this.key = key;
         this.deadlineNanos = deadlineNanos;
+        this.isStreaming = isStreaming;
+    }
+
+    /**
+     * Connects to a Unix socket whose response is read within the deadline
+     *
+     * @throws SocketTimeoutException if it cannot connect within the time limit
+     */
+    @NonNull static DeadlineChannel connect(@NonNull UnixDomainSocketAddress address, @NonNull Duration timeout)
+            throws IOException {
+        return connect(address, timeout, false);
     }
 
     /**
      * Connects to a Unix socket
      *
+     * @param isStreaming whether the response is a long-lived stream. The deadline then covers connecting and
+     *     writing the request, but not reading the response
      * @throws SocketTimeoutException if it cannot connect within the time limit
      */
-    @NonNull static DeadlineChannel connect(@NonNull UnixDomainSocketAddress address, @NonNull Duration timeout)
+    @NonNull static DeadlineChannel connect(
+            @NonNull UnixDomainSocketAddress address, @NonNull Duration timeout, boolean isStreaming)
             throws IOException {
         var deadline = System.nanoTime() + timeout.toNanos();
 
@@ -57,11 +83,11 @@ final class DeadlineChannel implements Closeable {
             channel.configureBlocking(false);
             selector = Selector.open();
             var key = channel.register(selector, 0);
-            var opened = new DeadlineChannel(channel, selector, key, deadline);
+            var opened = new DeadlineChannel(channel, selector, key, deadline, isStreaming);
 
             if (!channel.connect(address)) {
                 while (!channel.finishConnect()) {
-                    opened.await(SelectionKey.OP_CONNECT, "connect");
+                    opened.await(SelectionKey.OP_CONNECT, "connect", true);
                 }
             }
 
@@ -82,7 +108,7 @@ final class DeadlineChannel implements Closeable {
         var buffer = ByteBuffer.wrap(data);
         while (buffer.hasRemaining()) {
             if (channel.write(buffer) == 0) {
-                await(SelectionKey.OP_WRITE, "write");
+                await(SelectionKey.OP_WRITE, "write", true);
             }
         }
     }
@@ -103,17 +129,22 @@ final class DeadlineChannel implements Closeable {
      *
      * @throws SocketTimeoutException if the deadline passes
      */
-    private void await(int ops, @NonNull String action) throws IOException {
+    private void await(int ops, @NonNull String action, boolean bounded) throws IOException {
         while (true) {
-            var remaining = deadlineNanos - System.nanoTime();
+            var remaining = bounded ? deadlineNanos - System.nanoTime() : IDLE_POLL_NANOS;
             if (remaining <= 0) {
                 throw new SocketTimeoutException("podman did not " + action + " before the deadline");
             }
 
-            key.interestOps(ops);
-            selector.selectedKeys().clear();
-            var ready = selector.select(Math.max(1L, remaining / 1_000_000L));
-            selector.selectedKeys().clear();
+            int ready;
+            try {
+                key.interestOps(ops);
+                selector.selectedKeys().clear();
+                ready = selector.select(Math.max(1L, remaining / 1_000_000L));
+                selector.selectedKeys().clear();
+            } catch (ClosedSelectorException | CancelledKeyException e) {
+                throw new AsynchronousCloseException();
+            }
 
             if (Thread.currentThread().isInterrupted()) {
                 throw new InterruptedIOException("interrupted while waiting to " + action);
@@ -184,7 +215,7 @@ final class DeadlineChannel implements Closeable {
             buffer.clear();
             int count;
             while ((count = channel.read(buffer)) == 0) {
-                await(SelectionKey.OP_READ, "respond");
+                await(SelectionKey.OP_READ, "respond", !isStreaming);
             }
             buffer.flip();
 
