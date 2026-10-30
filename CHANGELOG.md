@@ -1,5 +1,31 @@
 # Changelog
 
+## [0.3.0](https://github.com/gabia/podman-java-sdk/compare/v0.2.0...v0.3.0) (2026-10-30)
+
+
+### Features
+
+* add system events subscription ([#35](https://github.com/gabia/podman-java-sdk/issues/35)) ([4480a4c](https://github.com/gabia/podman-java-sdk/commit/4480a4c5ed7ea2104582c322c600dcfd63e934fd))
+
+
+### Bug Fixes
+
+* stop enforcing the request deadline on streamed bodies ([#34](https://github.com/gabia/podman-java-sdk/issues/34)) ([93f0c6a](https://github.com/gabia/podman-java-sdk/commit/93f0c6a34be8b0176bc5c870751fcb0d459e24c3))
+
+
+### Dependencies
+
+* bump com.fasterxml.jackson.core:jackson-databind ([#30](https://github.com/gabia/podman-java-sdk/issues/30)) ([4269d28](https://github.com/gabia/podman-java-sdk/commit/4269d28e7a82a05a6073c9ef0c3cfbefd1cdd3a0))
+* bump com.fasterxml.jackson.datatype:jackson-datatype-jsr310 ([#32](https://github.com/gabia/podman-java-sdk/issues/32)) ([7d7cea7](https://github.com/gabia/podman-java-sdk/commit/7d7cea7930b36b21c661b8776b6f57e2cf21f19d))
+* bump gradle-wrapper from 9.8.1 to 9.8.2 ([#29](https://github.com/gabia/podman-java-sdk/issues/29)) ([1992b35](https://github.com/gabia/podman-java-sdk/commit/1992b35579edaa4924700018eb61bdd525d2597f))
+* bump org.springframework.boot:spring-boot-dependencies ([#33](https://github.com/gabia/podman-java-sdk/issues/33)) ([c89253f](https://github.com/gabia/podman-java-sdk/commit/c89253fd85c2c4bb5fb047f96188bfefecdd3cdf))
+* bump tools.jackson.core:jackson-databind from 3.2.3 to 3.2.4 ([#31](https://github.com/gabia/podman-java-sdk/issues/31)) ([ae4f4da](https://github.com/gabia/podman-java-sdk/commit/ae4f4da7705bb52adc1ccfdf5a88ba43949d94ff))
+
+
+### Documentation
+
+* add README requirements and starter examples ([#27](https://github.com/gabia/podman-java-sdk/issues/27)) ([25d728f](https://github.com/gabia/podman-java-sdk/commit/25d728f3c02cbc738c9a108bdcfbd9b82ba1160f))
+
 ## [0.2.0](https://github.com/gabia/podman-java-sdk/compare/v0.1.0...v0.2.0) (2026-10-22)
 
 
