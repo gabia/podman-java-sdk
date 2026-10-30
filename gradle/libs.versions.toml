@@ -14,7 +14,7 @@ jspecify = { module = "org.jspecify:jspecify", version = "1.0.1" }
 
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.22" }
 
-jackson2-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.22.3" }
+jackson2-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.22.4" }
 
 jackson2-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.22.4" }
 
