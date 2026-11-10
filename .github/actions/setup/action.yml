@@ -5,6 +5,9 @@ inputs:
   node:
     description: Whether to install Node.js and npm dependencies
     default: "false"
+  gradle-encryption-key:
+    description: Key for encrypting the Gradle configuration cache; when empty, the configuration cache is not saved or restored
+    default: ""
 
 runs:
   using: composite
@@ -15,6 +18,8 @@ runs:
         java-version: "21"
 
     - uses: gradle/actions/setup-gradle@v6
+      with:
+        cache-encryption-key: ${{ inputs.gradle-encryption-key }}
 
     - if: inputs.node == 'true'
       uses: actions/setup-node@v7
