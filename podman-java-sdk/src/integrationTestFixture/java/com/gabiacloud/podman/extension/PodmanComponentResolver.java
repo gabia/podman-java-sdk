@@ -23,7 +23,7 @@ import org.junit.jupiter.api.extension.ParameterContext;
 import org.junit.jupiter.api.extension.ParameterResolver;
 
 /**
- * Assembles the APIs with the serializer implementation registered in the store and injects them into test methods
+ * Assembles the APIs for the leased Podman instance of each test class and injects them into test methods
  */
 public final class PodmanComponentResolver implements BeforeAllCallback, ParameterResolver {
 
@@ -38,7 +38,7 @@ public final class PodmanComponentResolver implements BeforeAllCallback, Paramet
 
     @Override
     public void beforeAll(ExtensionContext context) {
-        var store = context.getRoot().getStore(PodmanInfraExtension.NAMESPACE);
+        var store = context.getStore(PodmanInfraExtension.NAMESPACE);
         if (store.get(PodmanRequestExecutor.class) != null) {
             return;
         }
@@ -62,7 +62,9 @@ public final class PodmanComponentResolver implements BeforeAllCallback, Paramet
         store.put(PodApi.class, pods);
         store.put(ContainerApi.class, containers);
         store.put(ImageApi.class, images);
-        store.put(PodmanFixtures.class, new PodmanFixtures(properties, executor, serializer, pods, containers, images));
+        var fixtures = new PodmanFixtures(properties, executor, serializer, converter, pods, containers, images);
+        store.put(PodmanFixtures.class, fixtures);
+        store.get(PodmanPool.Lease.class, PodmanPool.Lease.class).onRelease(fixtures::resetDaemon);
     }
 
     @Override
@@ -73,7 +75,6 @@ public final class PodmanComponentResolver implements BeforeAllCallback, Paramet
     @Override
     public Object resolveParameter(ParameterContext parameterContext, ExtensionContext extensionContext) {
         return extensionContext
-                .getRoot()
                 .getStore(PodmanInfraExtension.NAMESPACE)
                 .get(parameterContext.getParameter().getType());
     }

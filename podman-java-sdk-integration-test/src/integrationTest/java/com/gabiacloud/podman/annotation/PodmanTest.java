@@ -5,7 +5,6 @@
 
 package com.gabiacloud.podman.annotation;
 
-import com.gabiacloud.podman.extension.DotenvExtension;
 import com.gabiacloud.podman.extension.PodmanComponentResolver;
 import com.gabiacloud.podman.extension.PodmanInfraExtension;
 import java.lang.annotation.ElementType;
@@ -19,5 +18,5 @@ import org.junit.jupiter.api.extension.ExtendWith;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
-@ExtendWith({DotenvExtension.class, PodmanInfraExtension.class, PodmanComponentResolver.class})
+@ExtendWith({PodmanInfraExtension.class, PodmanComponentResolver.class})
 public @interface PodmanTest {}

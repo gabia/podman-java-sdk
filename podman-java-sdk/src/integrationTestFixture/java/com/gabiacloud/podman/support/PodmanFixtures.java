@@ -10,7 +10,9 @@ import com.gabiacloud.podman.api.ImageApi;
 import com.gabiacloud.podman.api.PodApi;
 import com.gabiacloud.podman.component.PodmanRequestExecutor;
 import com.gabiacloud.podman.component.RequestBodySerializer;
+import com.gabiacloud.podman.component.ResponseBodyConverter;
 import com.gabiacloud.podman.dto.ContainerSpec;
+import com.gabiacloud.podman.dto.IdSummary;
 import com.gabiacloud.podman.property.PodmanProperty;
 import java.io.IOException;
 import java.net.URI;
@@ -20,7 +22,7 @@ import java.util.Map;
 import lombok.AllArgsConstructor;
 
 /**
- * Creates and removes pods for integration tests
+ * Creates and removes Podman resources for integration tests
  */
 @AllArgsConstructor
 public final class PodmanFixtures {
@@ -37,6 +39,8 @@ public final class PodmanFixtures {
     private final PodmanRequestExecutor executor;
 
     private final RequestBodySerializer serializer;
+
+    private final ResponseBodyConverter converter;
 
     private final PodApi pods;
 
@@ -75,6 +79,50 @@ public final class PodmanFixtures {
     /** Removes the pod if it exists */
     public void removePod(String name) {
         pods.remove(name, true);
+    }
+
+    /**
+     * Force-removes every pod, container, unused volume, and user-defined network on the daemon, keeping images
+     */
+    public void resetDaemon() {
+        for (var pod : listIds("pods/json")) {
+            delete("pods/" + pod + "?force=true");
+        }
+
+        for (var container : listIds("containers/json?all=true")) {
+            delete("containers/" + container + "?force=true&v=true");
+        }
+
+        post("volumes/prune");
+        post("networks/prune");
+    }
+
+    private List<String> listIds(String path) {
+        var request = properties.newRequest(BASE.resolve(path)).GET().build();
+        var response = executor.processRequired(request);
+
+        try {
+            return converter.convertList(response.getBody(), IdSummary.class).stream()
+                    .map(IdSummary::getId)
+                    .toList();
+        } catch (IOException e) {
+            throw new IllegalStateException("cannot read " + path, e);
+        }
+    }
+
+    private void delete(String path) {
+        var request = properties.newRequest(BASE.resolve(path)).DELETE().build();
+
+        executor.process(request);
+    }
+
+    private void post(String path) {
+        var request = properties
+                .newRequest(BASE.resolve(path))
+                .POST(HttpRequest.BodyPublishers.noBody())
+                .build();
+
+        executor.processRequired(request);
     }
 
     private void post(String path, Object body) {

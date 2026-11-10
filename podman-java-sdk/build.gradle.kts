@@ -28,6 +28,8 @@ dependencies {
     "integrationTestFixtureImplementation"("org.testcontainers:testcontainers")
 
     "integrationTestFixtureImplementation"(libs.dotenv.java)
+
+    "integrationTestFixtureCompileOnly"("org.junit.platform:junit-platform-engine:${libs.versions.junit.get()}")
 }
 
 mavenPublishing {

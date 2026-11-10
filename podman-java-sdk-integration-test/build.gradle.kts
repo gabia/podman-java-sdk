@@ -36,17 +36,43 @@ testing {
     }
 }
 
+val podmanPoolSize = providers.systemProperty("podman.test.pool-size")
+
+val useExternalPodman = providers
+    .fileContents(layout.projectDirectory.file(".env"))
+    .asText
+    .map { text ->
+        text.lineSequence()
+            .map(String::trim)
+            .firstOrNull { it.startsWith("USE_EXTERNAL_PODMAN=") }
+            ?.substringAfter("=")
+            ?.trim()
+            .orEmpty()
+    }
+    .filter(String::isNotEmpty)
+    .orElse(providers.environmentVariable("USE_EXTERNAL_PODMAN"))
+    .map(String::toBoolean)
+    .orElse(false)
+
+abstract class ExternalPodman : BuildService<BuildServiceParameters.None>
+
+// Suites would share the external daemons, so only one of them may use them at a time
+val externalPodman = gradle.sharedServices.registerIfAbsent("externalPodman", ExternalPodman::class) {
+    maxParallelUsages.set(1)
+}
+
 tasks.withType<Test>().configureEach {
+    podmanPoolSize.orNull?.let { systemProperty("podman.test.pool-size", it) }
+
+    if (useExternalPodman.get()) {
+        usesService(externalPodman)
+    }
+
     reports {
         html.required.set(true)
 
         junitXml.required.set(true)
     }
-}
-
-tasks.named("jackson3IntegrationTest") {
-    // Suites share one Podman instance and fixed resource names, so they must not run concurrently
-    mustRunAfter("jackson2IntegrationTest")
 }
 
 tasks.register("integrationTest") {
