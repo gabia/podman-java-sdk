@@ -16,6 +16,8 @@ permissions:
 jobs:
   ci:
     uses: ./.github/workflows/ci.yml
+    secrets:
+      GRADLE_ENCRYPTION_KEY: ${{ secrets.GRADLE_ENCRYPTION_KEY }}
 
   release-please:
     needs: ci

@@ -9,8 +9,10 @@ tasks.named<Jar>("sourcesJar") {
 
     dependsOn(delombok)
 
+    val originalSources = files(sourceSets.main.map { it.allSource })
+
     exclude {
-        it.file in sourceSets.main.get().allSource.files
+        it.file in originalSources
     }
 
     from(delombok)

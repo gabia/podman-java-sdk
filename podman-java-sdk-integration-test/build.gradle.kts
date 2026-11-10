@@ -44,6 +44,11 @@ tasks.withType<Test>().configureEach {
     }
 }
 
+tasks.named("jackson3IntegrationTest") {
+    // Suites share one Podman instance and fixed resource names, so they must not run concurrently
+    mustRunAfter("jackson2IntegrationTest")
+}
+
 tasks.register("integrationTest") {
     group = LifecycleBasePlugin.VERIFICATION_GROUP
     dependsOn("jackson2IntegrationTest", "jackson3IntegrationTest")
