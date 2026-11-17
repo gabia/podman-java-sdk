@@ -12,7 +12,7 @@ gradle-maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", 
 
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.1" }
 
-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.22" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.23" }
 
 jackson2-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.22.4" }
 
