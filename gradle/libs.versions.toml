@@ -12,13 +12,12 @@ gradle-maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", 
 
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.1" }
 
+# Shared by Jackson 2 and 3.
 jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.22" }
 
-jackson2-databind = { module = "com.fasterxml.jackson.core:jackson-databind", version = "2.22.4" }
+jackson2-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.23.0" }
 
-jackson2-jsr310 = { module = "com.fasterxml.jackson.datatype:jackson-datatype-jsr310", version = "2.22.4" }
-
-jackson3-databind = { module = "tools.jackson.core:jackson-databind", version = "3.2.4" }
+jackson3-bom = { module = "tools.jackson:jackson-bom", version = "3.3.0" }
 
 spring-boot-dependencies = { module = "org.springframework.boot:spring-boot-dependencies", version = "4.1.2" }
 

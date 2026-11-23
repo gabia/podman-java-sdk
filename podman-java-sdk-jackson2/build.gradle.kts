@@ -19,8 +19,9 @@ dependencies {
 
     api(project(":podman-java-sdk"))
 
-    api(libs.jackson2.databind)
-    runtimeOnly(libs.jackson2.jsr310)
+    api(platform(libs.jackson2.bom))
+    api("com.fasterxml.jackson.core:jackson-databind")
+    runtimeOnly("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 
     testCompileOnly(libs.jspecify)
 

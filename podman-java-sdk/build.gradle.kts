@@ -19,8 +19,10 @@ dependencies {
 
     api(libs.jackson.annotations)
 
-    compileOnly(libs.jackson2.databind)
-    compileOnly(libs.jackson3.databind)
+    compileOnly(platform(libs.jackson2.bom))
+    compileOnly("com.fasterxml.jackson.core:jackson-databind")
+    compileOnly(platform(libs.jackson3.bom))
+    compileOnly("tools.jackson.core:jackson-databind")
 
     testCompileOnly(libs.jspecify)
 

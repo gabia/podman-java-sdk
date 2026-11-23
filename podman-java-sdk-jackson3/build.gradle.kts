@@ -19,7 +19,8 @@ dependencies {
 
     api(project(":podman-java-sdk"))
 
-    api(libs.jackson3.databind)
+    api(platform(libs.jackson3.bom))
+    api("tools.jackson.core:jackson-databind")
 
     testCompileOnly(libs.jspecify)
 
