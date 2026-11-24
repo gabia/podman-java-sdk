@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/gabia/podman-java-sdk/compare/v0.3.0...v0.3.1) (2026-11-24)
+
+
+### Dependencies
+
+* bump com.fasterxml.jackson.core:jackson-annotations ([#51](https://github.com/gabia/podman-java-sdk/issues/51)) ([17cc22e](https://github.com/gabia/podman-java-sdk/commit/17cc22eed7dcced1e3af8b9d9776b76249adb36f))
+* bump gradle-wrapper from 9.9.0 to 9.9.1 ([#49](https://github.com/gabia/podman-java-sdk/issues/49)) ([45765a0](https://github.com/gabia/podman-java-sdk/commit/45765a0b825b6724451a68ce7927189519a8e152))
+
 ## [0.3.0](https://github.com/gabia/podman-java-sdk/compare/v0.2.0...v0.3.0) (2026-11-11)
 
 
