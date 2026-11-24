@@ -13,7 +13,7 @@ gradle-maven-publish = { module = "com.vanniktech:gradle-maven-publish-plugin", 
 jspecify = { module = "org.jspecify:jspecify", version = "1.0.1" }
 
 # Shared by Jackson 2 and 3.
-jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.22" }
+jackson-annotations = { module = "com.fasterxml.jackson.core:jackson-annotations", version = "2.23" }
 
 jackson2-bom = { module = "com.fasterxml.jackson:jackson-bom", version = "2.23.0" }
 
